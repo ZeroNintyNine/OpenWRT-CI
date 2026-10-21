@@ -92,6 +92,28 @@ UPDATE_PACKAGE "mt5700m" "LianXia233/luci-app-mt5700m" "main"
 UPDATE_PACKAGE "netmonitor" "LianXia233/luci-app-netmonitor" "main"
 UPDATE_PACKAGE "qmodem-generic" "LianXia233/luci-app-qmodem-generic" "main"
 
+# 集成 kenzok8/openwrt-daede
+echo "===== Integrating openwrt-daede ====="
+DAEDE_TMP="$(mktemp -d)"
+trap 'rm -rf "$DAEDE_TMP"' EXIT
+git clone --depth=1 --single-branch --branch main \
+    https://github.com/kenzok8/openwrt-daede.git \
+    "$DAEDE_TMP/openwrt-daede"
+mkdir -p ./package
+for PKG in dae daed luci-app-daede vmlinux-btf; do
+    if [ -e "./package/$PKG" ]; then
+        echo "ERROR: ./package/$PKG already exists"
+        exit 1
+    fi
+    if [ ! -f "$DAEDE_TMP/openwrt-daede/$PKG/Makefile" ]; then
+        echo "ERROR: missing package Makefile: $PKG"
+        exit 1
+    fi
+    cp -a "$DAEDE_TMP/openwrt-daede/$PKG" ./package/
+    echo "Added package: $PKG"
+done
+echo "===== openwrt-daede integrated ====="
+
 #更新软件包版本
 UPDATE_VERSION() {
 	local PKG_NAME=$1
