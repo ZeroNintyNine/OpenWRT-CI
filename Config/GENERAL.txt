@@ -20,6 +20,9 @@ CONFIG_PACKAGE_luci-app-wolultra=y
 #删除插件
 CONFIG_PACKAGE_luci-app-attendedsysupgrade=n
 CONFIG_PACKAGE_luci-app-wol=n
+
+CONFIG_PACKAGE_luci-app-router-tool=n
+
 #参数调整
 CONFIG_CCACHE=y
 CONFIG_DEVEL=y
