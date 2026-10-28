@@ -93,9 +93,6 @@ UPDATE_PACKAGE "mt5700m" "LianXia233/luci-app-mt5700m" "main"
 UPDATE_PACKAGE "netmonitor" "LianXia233/luci-app-netmonitor" "main"
 UPDATE_PACKAGE "qmodem-generic" "LianXia233/luci-app-qmodem-generic" "main"
 
-# DAE 透明代理
-UPDATE_PACKAGE "dae" "QiuSimons/luci-app-dae" "kix"
-
 #更新软件包版本
 UPDATE_VERSION() {
 	local PKG_NAME=$1
