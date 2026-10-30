@@ -94,7 +94,6 @@ UPDATE_PACKAGE "netmonitor" "LianXia233/luci-app-netmonitor" "main"
 UPDATE_PACKAGE "qmodem-generic" "LianXia233/luci-app-qmodem-generic" "main"
 
 UPDATE_PACKAGE "vmlinux-btf" "QiuSimons/vmlinux-btf" "master"
-UPDATE_PACKAGE "honk" "daeuniverse/openwrt-packages" "chore/honk-beta3" "" "luci-app-honk luci-lib-daeuniverse"
 
 #更新软件包版本
 UPDATE_VERSION() {
