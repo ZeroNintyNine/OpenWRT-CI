@@ -139,6 +139,85 @@ UPDATE_VERSION() {
 #UPDATE_VERSION "软件包名" "测试版，true，可选，默认为否"
 #UPDATE_VERSION "sing-box"
 
+# 更新 v2ray-geodata 数据源和版本
+UPDATE_GEODATA() {
+	local GEO_REPO="Loyalsoldier/v2ray-rules-dat"
+	local GEO_MAKEFILE=$(find ./package/ ./feeds/packages/ \
+		-maxdepth 4 -type f \
+		-wholename "*/v2ray-geodata/Makefile" \
+		-print -quit)
+
+	if [ -z "$GEO_MAKEFILE" ]; then
+		echo "v2ray-geodata Makefile not found!"
+		return 1
+	fi
+
+	echo -e "\nv2ray-geodata source update has started!"
+
+	# 获取 Loyalsoldier 最新 Release 版本
+	local GEO_VER=$(curl -fsSL \
+		"https://api.github.com/repos/$GEO_REPO/releases/latest" |
+		jq -r '.tag_name')
+
+	if [ -z "$GEO_VER" ] || [ "$GEO_VER" = "null" ]; then
+		echo "Failed to get Loyalsoldier release!"
+		return 1
+	fi
+
+	local GEO_URL="https://github.com/$GEO_REPO/releases/download/$GEO_VER"
+
+	# 获取 GeoIP SHA256
+	local GEOIP_HASH=$(curl -fsSL \
+		"$GEO_URL/geoip.dat.sha256sum" |
+		awk 'NR==1 {print $1}')
+
+	# 获取 Geosite SHA256
+	local GEOSITE_HASH=$(curl -fsSL \
+		"$GEO_URL/geosite.dat.sha256sum" |
+		awk 'NR==1 {print $1}')
+
+	# 检查 SHA256
+	if [[ ! "$GEOIP_HASH" =~ ^[a-fA-F0-9]{64}$ ]] || \
+	   [[ ! "$GEOSITE_HASH" =~ ^[a-fA-F0-9]{64}$ ]]; then
+		echo "Failed to get valid SHA256!"
+		return 1
+	fi
+
+	echo "Release version: $GEO_VER"
+	echo "GeoIP SHA256: $GEOIP_HASH"
+	echo "Geosite SHA256: $GEOSITE_HASH"
+
+	# 更新 GeoIP 版本
+	sed -i "s|^GEOIP_VER:=.*|GEOIP_VER:=$GEO_VER|" "$GEO_MAKEFILE"
+	sed -i 's|^GEOIP_FILE:=.*|GEOIP_FILE:=geoip.dat.$(GEOIP_VER)|' "$GEO_MAKEFILE"
+
+	# 更新 GeoIP 下载源及校验值
+	sed -i '/^define Download\/geoip/,/^endef/ {
+		s|^  URL:=.*|  URL:='"$GEO_URL"'/|
+		s|^  URL_FILE:=.*|  URL_FILE:=geoip.dat|
+		s|^  FILE:=.*|  FILE:=$(GEOIP_FILE)|
+		s|^  HASH:=.*|  HASH:='"$GEOIP_HASH"'|
+	}' "$GEO_MAKEFILE"
+
+	# 更新 Geosite 版本
+	sed -i "s|^GEOSITE_VER:=.*|GEOSITE_VER:=$GEO_VER|" "$GEO_MAKEFILE"
+	sed -i 's|^GEOSITE_FILE:=.*|GEOSITE_FILE:=geosite.dat.$(GEOSITE_VER)|' "$GEO_MAKEFILE"
+
+	# 更新 Geosite 下载源及校验值
+	sed -i '/^define Download\/geosite/,/^endef/ {
+		s|^  URL:=.*|  URL:='"$GEO_URL"'/|
+		s|^  URL_FILE:=.*|  URL_FILE:=geosite.dat|
+		s|^  FILE:=.*|  FILE:=$(GEOSITE_FILE)|
+		s|^  HASH:=.*|  HASH:='"$GEOSITE_HASH"'|
+	}' "$GEO_MAKEFILE"
+
+	echo "v2ray-geodata source updated!"
+	echo "Updated Makefile: $GEO_MAKEFILE"
+}
+
+# 执行 GeoData 更新
+UPDATE_GEODATA
+
 #引入私有扩展脚本
 if [ -f "$GITHUB_WORKSPACE/Scripts/PRIVATE.sh" ]; then
 	source "$GITHUB_WORKSPACE/Scripts/PRIVATE.sh"
